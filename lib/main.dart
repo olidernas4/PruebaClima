@@ -232,12 +232,13 @@ class WeatherScreenState extends State<WeatherScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFF0F3057),
-                      Color(0xFF0F3057),
-                      Color(0xFF1A508B),
+                      Color(0xFFB3E5FC),
+                      Color(0xFFB3E5FC),
                       Color(0xFF328CC1),
+                      Color(0xFF328CC1),
+
                     ],
-                    stops: [0.1, 0.4, 0.7, 0.9],
+
                   ),
                 ),
                 child: ListView.builder(
