@@ -271,46 +271,61 @@ class LocationSelectionScreen extends StatelessWidget {
         title: const Text('Elegir ubicacion'),
         backgroundColor: Colors.blue,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, {'name': 'London', 'temperature': 51.5074, 'longitude': -0.1278}),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+      body:  Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0F3057),
+              Color(0xFF0F3057),
+              Color(0xFF1A508B),
+              Color(0xFF328CC1),
+            ],
+            stops: [0.1, 0.4, 0.7, 0.9],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {'name': 'London', 'temperature': 51.5074, 'longitude': -0.1278}),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+                ),
+                child: const Text(
+                  'London',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
-              child: const Text(
-                'London',
-                style: TextStyle(fontSize: 20),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {'name': 'Paris', 'temperature': 48.8566, 'longitude': 2.3522}),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 30),
+                ),
+                child: const Text(
+                  'Paris',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, {'name': 'Paris', 'temperature': 48.8566, 'longitude': 2.3522}),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 30),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {'name': 'New York', 'temperature': 40.7128, 'longitude': -74.0060}),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+                ),
+                child: const Text(
+                  'New York',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
-              child: const Text(
-                'Paris',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, {'name': 'New York', 'temperature': 40.7128, 'longitude': -74.0060}),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-              ),
-              child: const Text(
-                'New York',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
