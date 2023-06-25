@@ -274,9 +274,9 @@ class LocationSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Selecione ubicacion'),
+        title: const Text('Seleccione ubicación'),
       ),
-      body:Container(
+      body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -295,7 +295,7 @@ class LocationSelectionScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => Navigator.pop(context, {'name': 'London', 'temperature': 51.5074, 'longitude': -0.1278}),
+                onPressed: () => Navigator.pop(context, {'location': 'London'}),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
@@ -307,7 +307,7 @@ class LocationSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context, {'name': 'Paris', 'temperature': 48.8566, 'longitude': 2.3522}),
+                onPressed: () => Navigator.pop(context, {'location': 'Paris'}),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 30),
@@ -319,7 +319,7 @@ class LocationSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context, {'name': 'New York', 'temperature': 40.7128, 'longitude': -74.0060}),
+                onPressed: () => Navigator.pop(context, {'location': 'New York'}),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
@@ -329,18 +329,18 @@ class LocationSelectionScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 20),
                 ),
               ),
-              const  SizedBox(height: 20),
-               ElevatedButton(
-                onPressed: () => Navigator.pop(context, {'name': 'Colombia', 'temperature': 40.7128, 'longitude': -74.0060}),
-                 style: ElevatedButton.styleFrom(
-               backgroundColor: Colors.blueAccent,
-                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-               ),
-               child: const Text(
-               'Colombia',
-                style: TextStyle(fontSize: 20),
-               ),
-               ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {'location': 'Colombia'}),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+                ),
+                child: const Text(
+                  'Colombia',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
             ],
           ),
         ),
