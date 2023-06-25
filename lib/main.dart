@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,10 +41,13 @@ class WeatherScreenState extends State<WeatherScreen> {
   String humidity = '';
   String searchLocation = '';
 
+  List<ForecastData> forecastDataList = [];
+
   @override
   void initState() {
     super.initState();
     fetchWeatherData();
+    fetchForecastData();
   }
 
   Future<void> fetchWeatherData() async {
@@ -65,27 +69,40 @@ class WeatherScreenState extends State<WeatherScreen> {
       }
     }
   }
-
-  Future<void> fetchWeatherDataForLocation(double latitude, double longitude) async {
+  //llamado api
+  Future<void> fetchForecastData() async {
     final response = await http.get(
-      Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric'),
+      Uri.parse('https://api.openweathermap.org/data/2.5/forecast?q=$location&appid=$apiKey&units=metric'),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      final List<dynamic> forecastList = data['list'];
+       //estado busqueda
       setState(() {
-        temperature = data['main']['temp'].toString();
-        weatherDescription = data['weather'][0]['description'];
-        weatherIcon = data['weather'][0]['icon'];
-        humidity = data['main']['humidity'].toString();
+        forecastDataList = forecastList.map((forecast) {
+          final DateTime date = DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000, isUtc: true);
+          final double maxTemperature = forecast['main']['temp_max'].toDouble();
+          final double minTemperature = forecast['main']['temp_min'].toDouble();
+          final String description = forecast['weather'][0]['description'];
+          final String icon = forecast['weather'][0]['icon'];
+
+          return ForecastData(
+            date: date,
+            maxTemperature: maxTemperature,
+            minTemperature: minTemperature,
+            description: description,
+            icon: icon,
+          );
+        }).toList();
       });
     } else {
       if (kDebugMode) {
-        print('Failed to load weather data');
+        print('No se pudieron cargar los datos de pronóstico');
       }
     }
   }
-
+//selecion de pagina
   Future<Map<String, dynamic>?> openLocationSelectionScreen() async {
     return await Navigator.push(
       context,
@@ -99,15 +116,10 @@ class WeatherScreenState extends State<WeatherScreen> {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return {
-        'name': data['name'],
-        'temperature': data['main']['temp'],
-        'longitude': data['coord']['lon'],
-      };
+      return jsonDecode(response.body);
     } else {
       if (kDebugMode) {
-        print('Error al cargar los datos meteorológicos');
+        print('No se pudieron cargar los datos meteorológicos para la ubicación de búsqueda');
       }
       return null;
     }
@@ -117,144 +129,137 @@ class WeatherScreenState extends State<WeatherScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weather App'),
-        backgroundColor: Colors.blue,
+        title: const Text('Aplicación del tiempo'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0F3057),
-              Color(0xFF0F3057),
-              Color(0xFF1A508B),
-              Color(0xFF328CC1),
-            ],
-            stops: [0.1, 0.4, 0.7, 0.9],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () async {
+                final Map<String, dynamic>? result = await openLocationSelectionScreen();
+                if (result != null && result.containsKey('location')) {
+                  setState(() {
+                    location = result['location'];
+                  });
+                  fetchWeatherData();
+                  fetchForecastData();
+                }
+              },
+              child: const Text('Cambio de locacion'),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Clima actual es $location',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 5),
+            if (temperature.isNotEmpty)
               Text(
-                'Location: $location',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
+                '$temperature°C',
+                style: const TextStyle(fontSize: 30),
               ),
-              const SizedBox(height: 20),
+            if (weatherDescription.isNotEmpty)
               Text(
-                'Temperature: $temperature°C',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
+                weatherDescription,
+                style: const TextStyle(fontSize: 24),
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Description: $weatherDescription',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Humidity: $humidity%',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
-              ),
-              const SizedBox(height: 10),
+            if (weatherIcon.isNotEmpty)
               Image.network(
                 'https://openweathermap.org/img/w/$weatherIcon.png',
-                width: 200, height: 200,
+                width: 100,
+                height: 100,
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final selectedLocation = await openLocationSelectionScreen();
-
-                  if (selectedLocation != null) {
-                    final temperature = selectedLocation['temperature'];
-                    final longitude = selectedLocation['longitude'];
-
-                    await fetchWeatherDataForLocation(temperature, longitude);
-                    setState(() {
-                      location = selectedLocation['name'];
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                ),
-                child: const Text(
-                  'Selecione Ubicacion',
-                  style: TextStyle(fontSize: 20),
-                ),
+            const SizedBox(height: 10),
+            if (humidity.isNotEmpty)
+              Text(
+                'Humidity: $humidity%',
+                style: const TextStyle(fontSize: 20),
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        onChanged: (value) {
-                          searchLocation = value;
-                        },
-                        decoration: const InputDecoration(
-                          hintText: 'Enter location',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final searchedLocation = await fetchWeatherDataForSearchLocation(searchLocation);
-
-                      if (searchedLocation != null) {
-                        final temperature = searchedLocation['temperature'];
-                        final longitude = searchedLocation['longitude'];
-
-                        await fetchWeatherDataForLocation(temperature, longitude);
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () async {
+                final Map<String, dynamic>? result = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Buscar ubicación'),
+                    content: TextField(
+                      onChanged: (value) {
                         setState(() {
-                          location = searchedLocation['name'];
-                          searchLocation = '';
+                          searchLocation = value;
                         });
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Error'),
-                              content: const Text('No se pudieron obtener los datos meteorológicos para la ubicación ingresada.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      },
+                      decoration: const InputDecoration(hintText: 'Enter a location'),
                     ),
-                    child: const Text(
-                      'Buscar',
-                      style: TextStyle(fontSize: 20),
-                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final Map<String, dynamic>? weatherData =
+                          await fetchWeatherDataForSearchLocation(searchLocation);
+                          Navigator.pop(context, weatherData);
+                        },
+                        child: const Text('Buscar'),
+                      ),
+                    ],
                   ),
-                ],
+                );
+                if (result != null && result.containsKey('name')) {
+                  setState(() {
+                    location = result['name'];
+                  });
+                  fetchWeatherData();
+                  fetchForecastData();
+                }
+              },
+              child: const Text('buscar ubicacion '),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Pronóstico extendido',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF0F3057),
+                      Color(0xFF0F3057),
+                      Color(0xFF1A508B),
+                      Color(0xFF328CC1),
+                    ],
+                    stops: [0.1, 0.4, 0.7, 0.9],
+                  ),
+                ),
+                child: ListView.builder(
+                  itemCount: forecastDataList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final forecastData = forecastDataList[index];
+                    final String date = forecastData.date.toString().substring(0, 10);
+                    final String maxTemperature = forecastData.maxTemperature.toStringAsFixed(1);
+                    final String minTemperature = forecastData.minTemperature.toStringAsFixed(1);
+                    final String description = forecastData.description;
+                    final String icon = forecastData.icon;
+
+                    return ListTile(
+                      leading: Image.network('https://openweathermap.org/img/w/$icon.png'),
+                      title: Text(date),
+                      subtitle: Text('Max: $maxTemperature°C  Min: $minTemperature°C\n$description'),
+                    );
+                  },
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -268,10 +273,9 @@ class LocationSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Elegir ubicacion'),
-        backgroundColor: Colors.blue,
+        title: const Text('Selecione ubicacion'),
       ),
-      body:  Container(
+      body:Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -324,10 +328,39 @@ class LocationSelectionScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 20),
                 ),
               ),
+              const  SizedBox(height: 20),
+               ElevatedButton(
+                onPressed: () => Navigator.pop(context, {'name': 'Colombia', 'temperature': 40.7128, 'longitude': -74.0060}),
+                 style: ElevatedButton.styleFrom(
+               backgroundColor: Colors.blueAccent,
+                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+               ),
+               child: const Text(
+               'Colombia',
+                style: TextStyle(fontSize: 20),
+               ),
+               ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+
+class ForecastData {
+  final DateTime date;
+  final double maxTemperature;
+  final double minTemperature;
+  final String description;
+  final String icon;
+
+  ForecastData({
+    required this.date,
+    required this.maxTemperature,
+    required this.minTemperature,
+    required this.description,
+    required this.icon,
+  });
 }
